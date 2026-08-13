@@ -50,8 +50,27 @@ const createProduct = (req, res) => {
   res.status(201).json(newProduct);
 };
 
+const updateProduct = (req, res) => {
+  const product = products.find((p) => p.id === Number(req.params.id));
+  const { name, price, category, inStock } = req.body;
+
+  if (!product) {
+    return res.status(404).json({
+      message: "Product not found",
+    });
+  }
+
+  if (name) product.name = name;
+  if (price !== undefined) product.price = price;
+  if (category) product.category = category;
+  if (inStock !== undefined) product.inStock = inStock;
+
+  res.json(product);
+};
+
 module.exports = {
   createProduct,
   getProducts,
   getProductById,
+  updateProduct,
 };
