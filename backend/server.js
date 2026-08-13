@@ -4,6 +4,8 @@ const productRoutes = require("./routes/productRoutes");
 
 const app = express();
 
+app.use(express.json());
+
 const PORT = 5000;
 
 app.get("/api/health", (req, res) => {
