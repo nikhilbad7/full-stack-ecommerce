@@ -68,9 +68,26 @@ const updateProduct = (req, res) => {
   res.json(product);
 };
 
+const deleteProduct = (req, res) => {
+  const productIndex = products.findIndex(
+    (p) => p.id === Number(req.params.id),
+  );
+
+  if (productIndex === -1) {
+    return res.status(404).json({
+      message: "Product not found",
+    });
+  }
+
+  products.splice(productIndex, 1);
+
+  res.status(204).send();
+};
+
 module.exports = {
   createProduct,
   getProducts,
   getProductById,
   updateProduct,
+  deleteProduct,
 };
