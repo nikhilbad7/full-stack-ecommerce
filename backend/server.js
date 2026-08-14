@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 
 const productRoutes = require("./routes/productRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -17,6 +18,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/products", productRoutes);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

@@ -6,24 +6,21 @@ const {
   deleteProduct,
 } = require("../services/productService");
 
-const getProducts = async (req, res) => {
-  const products = await getAllProducts();
-  res.json(products);
-};
+const asyncHandler = require("../utils/asyncHandler");
 
-const getProduct = async (req, res) => {
+const getProducts = asyncHandler(async (req, res) => {
+  const products = await getAllProducts();
+
+  res.json(products);
+});
+
+const getProduct = asyncHandler(async (req, res) => {
   const product = await getProductById(req.params.id);
 
-  if (!product) {
-    return res.status(404).json({
-      message: "Product not found",
-    });
-  }
-
   res.json(product);
-};
+});
 
-const createProductController = async (req, res) => {
+const createProductController = asyncHandler(async (req, res) => {
   const { name, price, category, inStock } = req.body;
 
   if (!name || !category || price === undefined || inStock === undefined) {
@@ -47,9 +44,9 @@ const createProductController = async (req, res) => {
   const newProduct = await createProduct(req.body);
 
   res.status(201).json(newProduct);
-};
+});
 
-const updateProductController = async (req, res) => {
+const updateProductController = asyncHandler(async (req, res) => {
   const { name, price, category, inStock } = req.body;
 
   if (!name || !category || price === undefined || inStock === undefined) {
@@ -72,26 +69,14 @@ const updateProductController = async (req, res) => {
 
   const product = await updateProduct(req.params.id, req.body);
 
-  if (!product) {
-    return res.status(404).json({
-      message: "Product not found",
-    });
-  }
-
   res.json(product);
-};
+});
 
-const deleteProductController = async (req, res) => {
-  const deleted = await deleteProduct(req.params.id);
-
-  if (!deleted) {
-    return res.status(404).json({
-      message: "Product not found",
-    });
-  }
+const deleteProductController = asyncHandler(async (req, res) => {
+  await deleteProduct(req.params.id);
 
   res.status(204).send();
-};
+});
 
 module.exports = {
   createProductController,

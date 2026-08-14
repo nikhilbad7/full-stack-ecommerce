@@ -1,4 +1,5 @@
 const pool = require("../db");
+const AppError = require("../utils/AppError");
 
 const getAllProducts = async () => {
   const result = await pool.query("SELECT * FROM products ORDER BY id");
@@ -17,7 +18,7 @@ const getProductById = async (id) => {
   const result = await pool.query("SELECT * FROM products WHERE id = $1", [id]);
 
   if (result.rows.length === 0) {
-    return null;
+    throw new AppError("Product not found", 404);
   }
 
   const product = result.rows[0];
@@ -65,7 +66,7 @@ const updateProduct = async (id, { name, price, category, inStock }) => {
   );
 
   if (result.rows.length === 0) {
-    return null;
+    throw new AppError("Product not found", 404);
   }
 
   const product = result.rows[0];
@@ -87,7 +88,7 @@ const deleteProduct = async (id) => {
   );
 
   if (result.rows.length === 0) {
-    return false;
+    throw new AppError("Product not found", 404);
   }
 
   return true;
