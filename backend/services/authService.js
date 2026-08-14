@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const pool = require("../db");
 const AppError = require("../utils/AppError");
+const jwt = require("jsonwebtoken");
 
 const registerUser = async ({ name, email, password }) => {
   const passwordHash = await bcrypt.hash(password, 10);
@@ -23,6 +24,47 @@ const registerUser = async ({ name, email, password }) => {
   }
 };
 
+const loginUser = async ({ email, password }) => {
+  const result = await pool.query(
+    `SELECT id, name, email, password_hash
+     FROM users
+     WHERE email = $1`,
+    [email],
+  );
+
+  if (result.rows.length === 0) {
+    throw new AppError("Invalid email or password", 401);
+  }
+
+  const user = result.rows[0];
+
+  const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+
+  if (!isPasswordValid) {
+    throw new AppError("Invalid email or password", 401);
+  }
+
+  const token = jwt.sign(
+    {
+      userId: user.id,
+    },
+    process.env.JWT_SECRET,
+    {
+      expiresIn: "1h",
+    },
+  );
+
+  return {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    },
+    token,
+  };
+};
+
 module.exports = {
+  loginUser,
   registerUser,
 };
