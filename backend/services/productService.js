@@ -1,50 +1,94 @@
-const products = require("../data/products");
+const pool = require("../db");
 
-const getAllProducts = () => {
-  return products;
+const getAllProducts = async () => {
+  const result = await pool.query("SELECT * FROM products ORDER BY id");
+
+  return result.rows.map((product) => ({
+    id: product.id,
+    name: product.name,
+    price: Number(product.price),
+    category: product.category,
+    inStock: product.in_stock,
+    createdAt: product.created_at,
+  }));
 };
 
-const getProductById = (id) => {
-  return products.find((product) => product.id === Number(id));
-};
+const getProductById = async (id) => {
+  const result = await pool.query("SELECT * FROM products WHERE id = $1", [id]);
 
-const createProduct = ({ name, price, category, inStock }) => {
-  const newProduct = {
-    id: products.length + 1,
-    name,
-    price,
-    category,
-    inStock,
-  };
-
-  products.push(newProduct);
-
-  return newProduct;
-};
-
-const updateProduct = (id, { name, price, category, inStock }) => {
-  const product = products.find((product) => product.id === Number(id));
-
-  if (!product) {
+  if (result.rows.length === 0) {
     return null;
   }
 
-  product.name = name;
-  product.price = price;
-  product.category = category;
-  product.inStock = inStock;
+  const product = result.rows[0];
 
-  return product;
+  return {
+    id: product.id,
+    name: product.name,
+    price: Number(product.price),
+    category: product.category,
+    inStock: product.in_stock,
+    createdAt: product.created_at,
+  };
 };
 
-const deleteProduct = (id) => {
-  const index = products.findIndex((product) => product.id === Number(id));
+const createProduct = async ({ name, price, category, inStock }) => {
+  const result = await pool.query(
+    `INSERT INTO products (name, price, category, in_stock)
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [name, price, category, inStock],
+  );
 
-  if (index === -1) {
-    return false;
+  const product = result.rows[0];
+
+  return {
+    id: product.id,
+    name: product.name,
+    price: Number(product.price),
+    category: product.category,
+    inStock: product.in_stock,
+    createdAt: product.created_at,
+  };
+};
+
+const updateProduct = async (id, { name, price, category, inStock }) => {
+  const result = await pool.query(
+    `UPDATE products
+     SET name = $1,
+         price = $2,
+         category = $3,
+         in_stock = $4
+     WHERE id = $5
+     RETURNING *`,
+    [name, price, category, inStock, id],
+  );
+
+  if (result.rows.length === 0) {
+    return null;
   }
 
-  products.splice(index, 1);
+  const product = result.rows[0];
+
+  return {
+    id: product.id,
+    name: product.name,
+    price: Number(product.price),
+    category: product.category,
+    inStock: product.in_stock,
+    createdAt: product.created_at,
+  };
+};
+
+const deleteProduct = async (id) => {
+  const result = await pool.query(
+    "DELETE FROM products WHERE id = $1 RETURNING id",
+    [id],
+  );
+
+  if (result.rows.length === 0) {
+    return false;
+  }
 
   return true;
 };

@@ -6,13 +6,13 @@ const {
   deleteProduct,
 } = require("../services/productService");
 
-const getProducts = (req, res) => {
-  const products = getAllProducts();
+const getProducts = async (req, res) => {
+  const products = await getAllProducts();
   res.json(products);
 };
 
-const getProduct = (req, res) => {
-  const product = getProductById(req.params.id);
+const getProduct = async (req, res) => {
+  const product = await getProductById(req.params.id);
 
   if (!product) {
     return res.status(404).json({
@@ -23,7 +23,7 @@ const getProduct = (req, res) => {
   res.json(product);
 };
 
-const createProductController = (req, res) => {
+const createProductController = async (req, res) => {
   const { name, price, category, inStock } = req.body;
 
   if (!name || !category || price === undefined || inStock === undefined) {
@@ -44,12 +44,12 @@ const createProductController = (req, res) => {
     });
   }
 
-  const newProduct = createProduct(req.body);
+  const newProduct = await createProduct(req.body);
 
   res.status(201).json(newProduct);
 };
 
-const updateProductController = (req, res) => {
+const updateProductController = async (req, res) => {
   const { name, price, category, inStock } = req.body;
 
   if (!name || !category || price === undefined || inStock === undefined) {
@@ -70,7 +70,7 @@ const updateProductController = (req, res) => {
     });
   }
 
-  const product = updateProduct(req.params.id, req.body);
+  const product = await updateProduct(req.params.id, req.body);
 
   if (!product) {
     return res.status(404).json({
@@ -81,8 +81,8 @@ const updateProductController = (req, res) => {
   res.json(product);
 };
 
-const deleteProductController = (req, res) => {
-  const deleted = deleteProduct(req.params.id);
+const deleteProductController = async (req, res) => {
+  const deleted = await deleteProduct(req.params.id);
 
   if (!deleted) {
     return res.status(404).json({
