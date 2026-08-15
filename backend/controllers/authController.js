@@ -44,7 +44,16 @@ const getProfile = asyncHandler(async (req, res) => {
   });
 });
 
+const adminTest = asyncHandler(async (req, res) => {
+  res.json({
+    message: "Admin access granted",
+    userId: req.user.userId,
+    role: req.user.role,
+  });
+});
+
 module.exports = {
+  adminTest,
   register,
   login,
   getProfile,

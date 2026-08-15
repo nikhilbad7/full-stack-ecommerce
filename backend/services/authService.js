@@ -26,7 +26,7 @@ const registerUser = async ({ name, email, password }) => {
 
 const loginUser = async ({ email, password }) => {
   const result = await pool.query(
-    `SELECT id, name, email, password_hash
+    `SELECT id, name, email, password_hash, role
      FROM users
      WHERE email = $1`,
     [email],
@@ -47,6 +47,7 @@ const loginUser = async ({ email, password }) => {
   const token = jwt.sign(
     {
       userId: user.id,
+      role: user.role,
     },
     process.env.JWT_SECRET,
     {
@@ -59,6 +60,7 @@ const loginUser = async ({ email, password }) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      role: user.role,
     },
     token,
   };
