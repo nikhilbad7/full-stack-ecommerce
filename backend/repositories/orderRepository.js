@@ -74,9 +74,36 @@ const createOrderItems = async (client, orderId, items) => {
   }
 };
 
+const getOrdersByUserId = async (userId) => {
+  const result = await pool.query(
+    `
+    SELECT
+      o.id AS order_id,
+      o.user_id,
+      o.total_amount,
+      o.created_at,
+      oi.product_id,
+      p.name AS product_name,
+      oi.quantity,
+      oi.price
+    FROM orders o
+    INNER JOIN order_items oi
+      ON o.id = oi.order_id
+    INNER JOIN products p
+      ON oi.product_id = p.id
+    WHERE o.user_id = $1
+    ORDER BY o.created_at DESC, oi.id
+    `,
+    [userId],
+  );
+
+  return result.rows;
+};
+
 module.exports = {
   getOrderById,
   getProductsForOrder,
   createOrder,
   createOrderItems,
+  getOrdersByUserId,
 };

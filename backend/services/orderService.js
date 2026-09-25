@@ -117,7 +117,37 @@ const createOrder = async (userId, items) => {
     client.release();
   }
 };
+
+const getOrdersByUserId = async (userId) => {
+  const rows = await orderRepository.getOrdersByUserId(userId);
+
+  const ordersMap = new Map();
+
+  for (const row of rows) {
+    if (!ordersMap.has(row.order_id)) {
+      ordersMap.set(row.order_id, {
+        id: row.order_id,
+        userId: row.user_id,
+        total: Number(row.total_amount),
+        createdAt: row.created_at,
+        items: [],
+      });
+    }
+
+    const order = ordersMap.get(row.order_id);
+
+    order.items.push({
+      productId: row.product_id,
+      productName: row.product_name,
+      quantity: row.quantity,
+      price: Number(row.price),
+    });
+  }
+
+  return Array.from(ordersMap.values());
+};
 module.exports = {
   getOrderById,
   createOrder,
+  getOrdersByUserId,
 };
