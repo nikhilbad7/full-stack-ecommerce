@@ -19,7 +19,8 @@ const createOrderController = asyncHandler(async (req, res) => {
 });
 
 const getOrders = asyncHandler(async (req, res) => {
-  const orders = await getOrdersByUserId(req.user.userId);
+  const { page, limit } = req.query;
+  const orders = await getOrdersByUserId(req.user.userId, page, limit);
 
   res.status(200).json(orders);
 });

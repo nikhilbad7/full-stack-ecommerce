@@ -74,7 +74,7 @@ const createOrderItems = async (client, orderId, items) => {
   }
 };
 
-const getOrdersByUserId = async (userId) => {
+const getOrdersByUserId = async (userId, limit, offset) => {
   const result = await pool.query(
     `
     SELECT
@@ -86,18 +86,40 @@ const getOrdersByUserId = async (userId) => {
       p.name AS product_name,
       oi.quantity,
       oi.price
-    FROM orders o
+    FROM (
+      SELECT
+        id,
+        user_id,
+        total_amount,
+        created_at
+      FROM orders
+      WHERE user_id = $1
+      ORDER BY created_at DESC, id DESC
+      LIMIT $2
+      OFFSET $3
+    ) o
     INNER JOIN order_items oi
       ON o.id = oi.order_id
     INNER JOIN products p
       ON oi.product_id = p.id
-    WHERE o.user_id = $1
-    ORDER BY o.created_at DESC, oi.id
+    ORDER BY o.created_at DESC, o.id DESC, oi.id
     `,
+    [userId, limit, offset],
+  );
+
+  const countResult = await pool.query(
+    `
+  SELECT COUNT(*) AS total
+  FROM orders
+  WHERE user_id = $1
+  `,
     [userId],
   );
 
-  return result.rows;
+  return {
+    rows: result.rows,
+    total: Number(countResult.rows[0].total),
+  };
 };
 
 module.exports = {

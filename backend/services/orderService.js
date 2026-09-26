@@ -26,6 +26,28 @@ const validateOrderItems = (items) => {
   }
 };
 
+const validatePagination = (page, limit) => {
+  const parsedPage = Number(page);
+  const parsedLimit = Number(limit);
+
+  if (!Number.isInteger(parsedPage) || parsedPage <= 0) {
+    throw new AppError("Page must be a positive integer", 400);
+  }
+
+  if (!Number.isInteger(parsedLimit) || parsedLimit <= 0) {
+    throw new AppError("Limit must be a positive integer", 400);
+  }
+
+  if (parsedLimit > 50) {
+    throw new AppError("Limit cannot exceed 50", 400);
+  }
+
+  return {
+    page: parsedPage,
+    limit: parsedLimit,
+  };
+};
+
 const getOrderById = async (orderId, userId) => {
   const rows = await orderRepository.getOrderById(orderId, userId);
 
@@ -118,8 +140,19 @@ const createOrder = async (userId, items) => {
   }
 };
 
-const getOrdersByUserId = async (userId) => {
-  const rows = await orderRepository.getOrdersByUserId(userId);
+const getOrdersByUserId = async (userId, page = 1, limit = 10) => {
+  const { page: parsedPage, limit: parsedLimit } = validatePagination(
+    page,
+    limit,
+  );
+
+  const offset = (parsedPage - 1) * parsedLimit;
+
+  const { rows, total } = await orderRepository.getOrdersByUserId(
+    userId,
+    parsedLimit,
+    offset,
+  );
 
   const ordersMap = new Map();
 
@@ -144,7 +177,15 @@ const getOrdersByUserId = async (userId) => {
     });
   }
 
-  return Array.from(ordersMap.values());
+  return {
+    data: Array.from(ordersMap.values()),
+    pagination: {
+      page: parsedPage,
+      limit: parsedLimit,
+      total,
+      totalPages: Math.ceil(total / parsedLimit),
+    },
+  };
 };
 module.exports = {
   getOrderById,
